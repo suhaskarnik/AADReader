@@ -1,7 +1,14 @@
-﻿# Dependencies
+﻿# Overview
+This Azure Function App reads Azure AD Groups and fetches their members
+
+### GetGroups
+
+Fetches the groups and members and writes this data into files in a Azure Data Lake (Gen 1) specified
+
+Usage: `GET|POST /GetGroups/ ` 
 
 
-# Installation Steps
+### Installation Steps
 
 1. Publish the project via Visual Studio
 2. Modify the environment variable (app setting) called "AAD_TENANT" and set it to your Azure AD Tenant ID
