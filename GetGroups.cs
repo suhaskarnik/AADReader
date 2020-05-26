@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,8 +23,28 @@ namespace AADReader
             ILogger log)
         {
             string ipGroups = req.Query["aadGroups"];
-            string ipAdlsAccount = req.Query["AdlsAccount"];
-            string ipAdlsPath = req.Query["AdlsPath"];
+            string ipAdlsAccount = req.Query["adlsAccount"];
+            string ipAdlsPath = req.Query["adlsPath"];
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            ipGroups = ipGroups ?? data?.aadGroups;
+            ipAdlsAccount = ipAdlsAccount ?? data?.adlsAccount;
+            ipAdlsPath = ipAdlsPath ?? data?.adlsPath;
+
+            if (string.IsNullOrEmpty(ipGroups)) { return makeHttpErrorResponse(System.Net.HttpStatusCode.BadRequest, 
+                "Please provide a value for the `aadGroups` parameter"); }
+
+            if (string.IsNullOrEmpty(ipAdlsAccount))
+            {
+                return makeHttpErrorResponse(System.Net.HttpStatusCode.BadRequest, "Please provide a value for the `adlsAccount` parameter");
+            }
+
+            if (string.IsNullOrEmpty(ipAdlsPath))
+            {
+                return makeHttpErrorResponse(System.Net.HttpStatusCode.BadRequest, "Please provide a value for the `adlsPath` parameter");
+            }
+
 
             List<String> groupNames = new List<String>(ipGroups.Split(";"));
 
@@ -113,8 +134,13 @@ namespace AADReader
 
         }
 
-
-
+        private static HttpResponseMessage makeHttpErrorResponse(System.Net.HttpStatusCode code, string message)
+        {
+            return new HttpResponseMessage(code)
+            {
+                Content = new StringContent(message, Encoding.UTF8, "application/json")
+            };
+        }
 
         private static async Task<Graph.GraphServiceClient> GetGraphApiClient(ILogger log)
         {

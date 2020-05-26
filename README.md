@@ -1,14 +1,29 @@
-﻿# Overview
-This Azure Function App reads Azure AD Groups and fetches their members
+﻿# Azure AD Reader
+This Azure Function App reads Azure AD Groups and fetches their members using the Graph API. This app supports Managed Identity and uses the MI to authenticate to Azure AD and Azure Data Lake. 
 
 ### GetGroups
 
-Fetches the groups and members and writes this data into files in a Azure Data Lake (Gen 1) specified
+Fetches the groups and members and writes the data into files in a specified Azure Data Lake (Gen 1) path
 
-Usage: `GET|POST /GetGroups/ ` 
+Usage: `GET /GetGroups/`
 
+Request headers to the GET request:
+* `ipGroups` : Semicolon (`;`) separated list of Azure AD Groups to retrieve
+* `ipAdlsAccount` : Azure Data Lake Store Account Name. Give the full name (i.e. `xyz.azuredatalakestore.net`, not `xyz`)
+* `ipAdlsPath` : Path in ADLS. Must include slashes in the beginning and at the end i.e. `/myfolder/`, not `myfolder`.
 
-### Installation Steps
+Note that the Function App Identity must have write permissions on the ADLS path. 
+
+##### Output
+Generates 4 files in the specified ADLS folder:
+* `Group_xxxx.json`: Information about the requested AAD Groups
+* `User_xxxx.json` : Regular users who are members
+* `SPN_xxxx.json` : SPNs (includes managed identities) who are members
+* `OtherMember_xxxx.json` : Other types of members such as Groups
+
+To prevent collission of file names, each name is suffixed with a GUID (represented by `xxxx` above), so an actual file name could be `Member_28a634a4-8b48-4971-921e-b22e1c0c198a`.json for instance
+
+### Configuration
 
 1. Publish the project via Visual Studio
 2. Modify the environment variable (app setting) called "AAD_TENANT" and set it to your Azure AD Tenant ID
